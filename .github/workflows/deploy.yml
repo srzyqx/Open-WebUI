@@ -34,14 +34,14 @@ jobs:
         run: |
           date "+%Y-%m-%d" > ./date.txt
           
-      - name: Commit changes
+      - name: Commit and force push changes
         run: |
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
-          git add ./date.txt
-          git commit -m "Update date"
-          git push
+          git add -f ./date.txt
+          git commit -m "Update date" || echo "No changes to commit"
+          git push --force origin main
 
   deploy:
     runs-on: ubuntu-latest
