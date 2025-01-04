@@ -32,7 +32,7 @@ jobs:
       
       - name: Update date
         run: |
-          date "+%Y-%m-%d" > ./date.txt
+          date "+%Y-%m-%d" > ./last_updated.txt
           
       - name: Commit and force push changes
         run: |
