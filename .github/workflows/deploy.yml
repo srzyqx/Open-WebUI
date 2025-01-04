@@ -1,4 +1,4 @@
-name: 部署到抱抱脸空间
+name: 更新日期并部署到抱抱脸空间
 
 on:
   push:
@@ -8,6 +8,7 @@ on:
   workflow_dispatch:
   schedule:
     - cron: '0 20 * * *'  
+
 jobs:
   check-secret:
     runs-on: ubuntu-latest
@@ -20,9 +21,26 @@ jobs:
         if: "${{ env.HF_TOKEN != '' }}"
         run: echo "defined=true" >> $GITHUB_OUTPUT
 
+  update-date:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Update date
+        run: |
+          date "+%Y-%m-%d" > ./date.txt
+          
+      - name: Commit changes
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add ./date.txt
+          git commit -m "Update date"
+          git push
+
   deploy:
     runs-on: ubuntu-latest
-    needs: [check-secret]
+    needs: [check-secret, update-date]
     if: needs.check-secret.outputs.token-set == 'true'
     env:
       HF_TOKEN: ${{ secrets.HF_TOKEN }}
@@ -54,6 +72,7 @@ jobs:
         run: |
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
+
       - name: 设置Git并推送到抱抱脸空间
         run: |
           git init --initial-branch=main
