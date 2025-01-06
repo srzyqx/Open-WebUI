@@ -22,26 +22,46 @@ jobs:
         run: echo "defined=true" >> $GITHUB_OUTPUT
 
   update-date:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-      
-      - name: Update date
-        run: |
-          date "+%Y-%m-%d" > ./last_updated.txt
-          
-      - name: Commit and force push changes
-        run: |
-          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
-          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
-          git add -f ./date.txt
-          git commit -m "Update date" || echo "No changes to commit"
-          git push --force origin main
+      runs-on: ubuntu-latest
+      permissions:
+        contents: write
+      steps:
+        - uses: actions/checkout@v3
+          with:
+            token: ${{ secrets.GITHUB_TOKEN }}
+        
+        - name: Update date history
+          run: |
+            # 如果文件不存在，创建文件
+            if [ ! -f "./last_updated.txt" ]; then
+              touch ./last_updated.txt
+            fi
+            
+            # 获取当前日期
+            current_date=$(date "+%Y-%m-%d")
+            
+            # 读取现有内容到临时文件
+            cat ./last_updated.txt > temp.txt
+            
+            # 在文件开头添加新日期
+            echo "$current_date" | cat - temp.txt > temp2.txt
+            
+            # 只保留前15行
+            head -n 15 temp2.txt > ./last_updated.txt
+            
+            # 清理临时文件
+            rm temp.txt temp2.txt
+            
+        - name: Commit and force push changes
+          run: |
+            git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git config --local user.name "github-actions[bot]"
+            git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
+            git add last_updated.txt
+            git commit -m "Update date history"
+            git push --force origin main
+            
+
 
   deploy:
     runs-on: ubuntu-latest
